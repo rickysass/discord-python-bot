@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
+import emojidatabase
 
 load_dotenv() # Loads from the .env file in the same directory
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
@@ -30,6 +31,12 @@ async def button (ctx):
     """Sends a message with a clickable button"""
     view = MyView()
     await ctx.send("Are you going to behave?", view=view)
+
+@bot.command(name="newreact")
+async def addreact_command(ctx, word, emoji):
+    """Tries to add a new pair to the database"""
+    edb.addPairToDB(word, emoji)
+
 
 @bot.command(name="shutdown")
 async def shutdown(ctx):
@@ -70,19 +77,14 @@ async def on_ready():
 async def on_message(message):
     if message.author == bot.user:
         return
-    horny_reactions = {
-        "vore":  "👀",
-        "foot": "🦶",
-        "feet": "👣",
-        "paw": "🐾",
-        "bear": "🐻",
-        "monkey": "🐵"
-    }
+    
+    if message.content[0] == "!":
+        return
 
-    for word in horny_reactions.keys():
+    for word in edb.getListOfTriggerWords():
         if word.lower() in message.content.lower():
             try:
-                await message.add_reaction(horny_reactions[word])
+                await message.add_reaction(edb.getEmojiFromDB(word))
                 print(f"Reacted to message: {message.content}")
             except discord.HTTPException as e:
                 print(f"⚠️ Failed to react{e}")
@@ -94,6 +96,8 @@ if __name__ == "__main__":
         print("❌ ERROR: Please set the DISCORD_BOT_TOKEN environment variable.")
     else:
         try:
+            edb = emojidatabase.EmojiDatabase()
+
             bot.run(TOKEN)
         except KeyboardInterrupt:
             print("\nBot stopped manually.")
