@@ -35,7 +35,10 @@ async def button (ctx):
 @bot.command(name="newreact")
 async def addreact_command(ctx, word, emoji):
     """Tries to add a new pair to the database"""
-    edb.addPairToDB(word, emoji)
+    result = edb.addPairToDB(word, emoji)
+
+    if (result == 1):
+        await ctx.send("I will now react to the word " + word + " with " + emoji)
 
 
 @bot.command(name="shutdown")
@@ -79,6 +82,8 @@ async def on_message(message):
         return
     
     if message.content[0] == "!":
+        print("Detected command.")
+        await bot.process_commands(message)
         return
 
     for word in edb.getListOfTriggerWords():

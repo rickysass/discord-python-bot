@@ -1,4 +1,5 @@
 import sqlite3
+import emoji
 
 class EmojiDatabase:
     tableName = "emojireactions"
@@ -26,24 +27,31 @@ class EmojiDatabase:
         for word in self.defaultPairs.keys():
             self.addPairToDB(word, self.defaultPairs[word])
 
-        #self.getEmojiFromDB("vore")
         self.getListOfTriggerWords()
 
     def addPairToDB(self, key, value):
+
+        if (key == None or value == None):
+            print("User submitted empty values")
+            return 0
+
         if (key in self.getListOfTriggerWords()):
             print(key + " already in database.")
-            return
+            return 0
+        
+        if (not emoji.is_emoji(value)):
+            print("User submitted non-emoji value.")
+            return 0
 
         query = f"INSERT INTO {self.tableName} VALUES('{key}', '{value}')"
-        print(query)
         self.cursor.execute(query)
         self.db.commit()
+        return 1
 
     def getEmojiFromDB(self, word):
         query = f"SELECT emoji FROM {self.tableName} WHERE word IS '{word}'"
         self.cursor.execute(query)
         result = self.cursor.fetchone()[0]
-        print(result)
         return result
     
     def getListOfTriggerWords(self):
@@ -51,5 +59,4 @@ class EmojiDatabase:
         self.cursor.execute(query)
         result = self.cursor.fetchall()
         wordlist = [row[0] for row in result]
-        print (wordlist)
         return wordlist
